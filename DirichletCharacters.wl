@@ -149,7 +149,7 @@ Generators[q_Integer?Positive]:=
 	gens=Select[gens,#>1&];
 
 	Do[
-		CRinputs=Transpose[Append[Drop[factorlist,{k}]/.{{2,e_Integer}:>{1,2^e},{p_Integer,e_Integer}:>{1,p^e}},factorlist[[k]]/.{p_,e_}->{g[p],p^e}]];
+		CRinputs=Transpose[Append[Drop[factorlist,{k}]/.{{2,e_Integer}:>{1,2^e},{p_Integer,e_Integer}:>{1,p^e}},factorlist[[k]]/.{p_,e_}:>{g[p],p^e}]];
 		AppendTo[gens,ChineseRemainder@@CRinputs],
 	{k,1+Boole[EvenQ[q]],Length[factorlist]}];
 
@@ -181,11 +181,12 @@ ConreyIndexToMathematicaIndex[\[Chi]_DC?CharacterQ]:=ConreyIndexToMathematicaInd
 (*SAD: ConreyIndexToMathematicaIndex is not aware of the structure in Mathematica's notation.*)
 
 ConreyIndexFromMathematicaIndex[q_Integer,j_Integer]:=
-	ConreyIndexFromMathematicaIndex[q,j]=
+	(ConreyIndexFromMathematicaIndex[q,j]=
 			Module[{onGens,m=1,gens=Generators[q]},
               onGens=Map[DirichletCharacter[q,j,#]&,gens];
               m=Select[CharacterIndices[q],DC[q,#][gens]==onGens&,1];
-              First[m]] /; 0<j<EulerPhi[q];
+              First[m]] 
+              )/; 0<j<EulerPhi[q];
 (*SAD: ConreyIndexFromMathematicaIndex is not aware of the structure in Mathematica's notation.*)
 
 
@@ -256,7 +257,7 @@ NumberOfPrimitiveCharacters[q_Integer?Positive]:=
 PrimitiveCharacters[q_Integer?Positive]:=Map[DC[q,#]&,Select[CharacterIndices[q],PrimitiveCharacterQ[DC[q,#]]&]];
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Zeros of L-Series:*)
 (*DirichletL, LSeriesXi, LSeriesZeros*)
 
