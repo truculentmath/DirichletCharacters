@@ -11,7 +11,7 @@
 BeginPackage["DirichletCharacters`"]
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Usage Messages*)
 
 
@@ -51,10 +51,6 @@ NumberOfPrimitiveCharacters::usage="NumberOfPrimitiveCharacters[q] returns the n
 PrimitiveCharacters::usage="PrimitiveCharacters[q] returns a list of the primitive characters with modulus q.";
 DCInducingCharacter::usage=" Not yet implemented. DCInducingCharacter[\[Chi]] returns the character that induces \[Chi]=DC[q,i].";
 
-DirichletL::usage="DirichletL[\[Chi],s] returns the evaluation of the L-series for \[Chi] evaluated at s. This uses the built in Mathematica DirichletL function.";
-LSeriesXi::usage="LSeriesXi[\[Chi],t] returns a symmetrized form of the Dirichlet L-series for the character \[Chi], given in the form DC[q,i], evaluated at t.";
-LSeriesZeros::usage="LSeriesZeros[\[Chi],interval,stepsize] evaluates the (symmetrized) L series Xi[\[Chi],t] for the character \[Chi], given in the form DC[q,i], in the interval, given in the form Interval[{a,b}] at points at most stepsize apart, and uses bisection whenever there is a sign change. Returns a list of real numbers that are the imaginary parts of zeros of the L series on the critical line. This may miss zeros!";
-
 CharacterTable::usage="CharacterTable[q] returns the character table for the group of characters modulo q. To get labelling, provide the option Method -> TableForm";
 
 ConjugateCharacter::usage="ConjugateCharacter[\[Chi]] returns the character \[Tau] obtained by pointwise complex conjugation. In other words, \[Chi]\[Tau] is real.";
@@ -63,7 +59,10 @@ LiftCharacter::usage="LiftCharacter[\[Chi],Q] returns a character \[Tau] with mo
 
 CharacterDecomposition::usage="Not implimented. CharacterDecomposition[LOV] returns a linear combination of characters that evaluates Range[Length[LOV]] to LOV.";
 
-
+DirichletL::usage="DirichletL[\[Chi],s] returns the evaluation of the L-series for \[Chi] evaluated at s. This uses the built in Mathematica DirichletL function.";
+LSeriesXi::usage="LSeriesXi[\[Chi],t] returns a symmetrized form of the Dirichlet L-series for the character \[Chi], given in the form DC[q,i], evaluated at t.";
+LSeriesZeros::usage="LSeriesZeros[\[Chi],interval,stepsize] evaluates the (symmetrized) L series Xi[\[Chi],t] for the character \[Chi], given in the form DC[q,i], in the interval, given in the form Interval[{a,b}] at points at most stepsize apart, and uses bisection whenever there is a sign change. Returns a list of real numbers that are the imaginary parts of zeros of the L series on the critical line. This may miss zeros!";
+NTchi::usage="NTchi[\[Chi],Interval[{a,b}]] uses numerical integration to compute the number of zeros of L(s,\[Chi]) whose height is between a and b.";
 
 
 Begin["`Private`"]
@@ -258,64 +257,6 @@ PrimitiveCharacters[q_Integer?Positive]:=Map[DC[q,#]&,Select[CharacterIndices[q]
 
 
 (* ::Subsection::Closed:: *)
-(*Zeros of L-Series:*)
-(*DirichletL, LSeriesXi, LSeriesZeros*)
-
-
-DC/:DirichletL[\[Chi]_DC?CharacterQ,s_]:=Module[{q,m},{q,m}=ConreyIndexToMathematicaIndex[\[Chi]];DirichletL[q,m,s]];
-
-
-(* See http://arxiv.org/pdf/1102.2680v1.pdf for details and symmetries of Xi *)
-LSeriesXi[\[Chi]_DC?CharacterQ,t_]:=
-	Module[
-		{s=1/2+t I,b=Boole[OddQ[\[Chi]]],q,m},
-		
-		{q,m}=ConreyIndexToMathematicaIndex[\[Chi]];
-		(\[Pi]/q)^(-(s+b)/2) Gamma[(s+b)/2]DirichletL[q,m,s]];
-
-
-LSeriesZeros[\[Chi]_,int_Interval,stepsize_]:=Module[
-	{Bisection,F,start,end,sols,q,m,b,root},
-(* Assumes that all zeros are on the Re[s]=1/2 line, and checks for potential 
-zeros every stepsize inside int, using Bisection if there is a sign change. 
-Uses Xi, which is real on the real axis, to avoid checking both Real and Imaginary parts. *)
-
-Bisection[lower_,upper_]:=Bisection[lower,Sign[F[lower]],upper,Sign[F[upper]]];
-Bisection[lower_,Flower_,upper_,Fupper_]:=
-	Module[{mid,Fmid},
-		mid=(lower+upper)/2;
-		Fmid=Sign[F[mid]];
-		Which[mid==lower||mid==upper,mid,
-		Flower Fupper>0,Infinity,
-		Flower Fmid<0,Bisection[lower,Flower,mid,Fmid],
-		Fmid Fupper<0,Bisection[mid,Fmid,upper,Fupper]]];
-
-	{q,m}=ConreyIndexToMathematicaIndex[\[Chi]];
-	b=Boole[OddQ[\[Chi]]];
-	F[t_]:=Re[(\[Pi]/q)^(-(1/2+t I+b)/2) * Gamma[(1/2+t I+b)/2] * DirichletL[q,m,1/2+t I]];
-
-	start=Min[int];
-	end=Max[int];
-
-	{_,{sols}}=Reap[
-			Do[
-				root=Bisection[a,a+stepsize];
-				If[root<=end,Sow[root]],
-			{a,start,end+stepsize,stepsize}]]
-	];
-
-(*SAD: LSeriesZeros does not take advantage of symmetry of real characters.*)
-(*SAD: LSeriesZeros does not take advantage of a table.*)
-(*SAD: LSeriesZeros does not go to arbitrary precision.*)
-(*SAD: LSeriesZeros does not check for missing zeros.*)
-(*SAD: LSeriesZeros does not use Compile for the Xi function.*)
-(*SAD: LSeriesZeros uses bisection, which isn't brainiac territory.*)
-(*SAD: LSeriesZeros does not scale "stepsize" to be smart about when there are more zeros, like at great height or conductor.*)
-(*SAD: LSeriesZeros assumes GRH, and even so may miss zeros.*)
-(*SAD: LSeriesZeros does not generate an error message to the effect that zeros are not too precise, and some may be missing.*)
-
-
-(* ::Subsection::Closed:: *)
 (*Character Table:*)
 (*CharacterTable*)
 
@@ -422,6 +363,86 @@ Block[
 Times[DC[Q,Mod[ConreyIndex[LiftCharacter[DC[q1,m1],Q]]*ConreyIndex[LiftCharacter[DC[q2,m2],Q]],Q]],othercharacters]
 ]
 ];
+
+
+(* ::Subsection::Closed:: *)
+(*Zeros of L-Series:*)
+(*DirichletL, LSeriesXi, LSeriesZeros, NTchi*)
+
+
+DC/:DirichletL[\[Chi]_DC?CharacterQ,s_]:=Module[{q,m},{q,m}=ConreyIndexToMathematicaIndex[\[Chi]];DirichletL[q,m,s]];
+
+
+(* See http://arxiv.org/pdf/1102.2680v1.pdf for details and symmetries of Xi *)
+LSeriesXi[\[Chi]_DC?CharacterQ,t_]:=
+	Module[
+		{s=1/2+t I,b=Boole[OddQ[\[Chi]]],q,m},
+		
+		{q,m}=ConreyIndexToMathematicaIndex[\[Chi]];
+		(\[Pi]/q)^(-(s+b)/2) Gamma[(s+b)/2]DirichletL[q,m,s]];
+
+
+NTchi[chi_,i_Interval]:=Module[{a=(1-chi[-1])/2,q=CharacterModulus[chi],conjchi,estimateT=0,estimatet=0,T,t},
+{t,T}={Min[i],Max[i]};
+If[t<0,conjchi=ConjugateCharacter[chi]];
+Which[
+T>0,
+	estimateT=1/\[Pi] Im[LogGamma[1/4+a/2+I T/2]]+T/(2\[Pi]) Log[q/\[Pi]]+1/\[Pi] Im[NIntegrate[D[DirichletL[chi,s],s]/DirichletL[chi,s],{s,1/2,3}]]+1/\[Pi] Im[NIntegrate[D[DirichletL[chi,s],s]/DirichletL[chi,s],{s,3+I T,1/2+I T}]],
+T<0,
+	estimateT=1/\[Pi] Im[LogGamma[1/4+a/2+I (-T)/2]]+-T/(2\[Pi]) Log[q/\[Pi]]+1/\[Pi] Im[NIntegrate[D[DirichletL[conjchi,s],s]/DirichletL[conjchi,s],{s,1/2,3}]]+1/\[Pi] Im[NIntegrate[D[DirichletL[conjchi,s],s]/DirichletL[conjchi,s],{s,3-I T,1/2-I T}]],
+T==0,
+	estimateT=0];
+Which[
+t>0,
+	estimatet=1/\[Pi] Im[LogGamma[1/4+a/2+I t/2]]+t/(2\[Pi]) Log[q/\[Pi]]+1/\[Pi] Im[NIntegrate[D[DirichletL[chi,s],s]/DirichletL[chi,s],{s,1/2,3}]]+1/\[Pi] Im[NIntegrate[D[DirichletL[chi,s],s]/DirichletL[chi,s],{s,3+I t,1/2+I t}]],
+t<0,
+	estimatet=1/\[Pi] Im[LogGamma[1/4+a/2+I (-t)/2]]+-t/(2\[Pi]) Log[q/\[Pi]]+1/\[Pi] Im[NIntegrate[D[DirichletL[conjchi,s],s]/DirichletL[conjchi,s],{s,1/2,3}]]+1/\[Pi] Im[NIntegrate[D[DirichletL[conjchi,s],s]/DirichletL[conjchi,s],{s,3-I t,1/2-I t}]],
+t==0,
+	estimatet=0];
+
+Round[estimateT]-If[t>0,1,-1]Round[estimatet]]
+
+
+LSeriesZeros[\[Chi]_,int_Interval,stepsize_]:=Module[
+	{Bisection,F,start,end,sols,q,m,b,root,zeros},
+(* Assumes that all zeros are on the Re[s]=1/2 line, and checks for potential 
+zeros every stepsize inside int, using Bisection if there is a sign change. 
+Uses Xi, which is real on the real axis, to avoid checking both Real and Imaginary parts. *)
+
+Bisection[lower_,upper_]:=Bisection[lower,Sign[F[lower]],upper,Sign[F[upper]]];
+Bisection[lower_,Flower_,upper_,Fupper_]:=
+	Module[{mid,Fmid},
+		mid=(lower+upper)/2;
+		Fmid=Sign[F[mid]];
+		Which[mid==lower||mid==upper,mid,
+		Flower Fupper>0,Infinity,
+		Flower Fmid<0,Bisection[lower,Flower,mid,Fmid],
+		Fmid Fupper<0,Bisection[mid,Fmid,upper,Fupper]]];
+
+	{q,m}=ConreyIndexToMathematicaIndex[\[Chi]];
+	b=Boole[OddQ[\[Chi]]];
+	F[t_]:=Re[(\[Pi]/q)^(-(1/2+t I+b)/2) * Gamma[(1/2+t I+b)/2] * DirichletL[q,m,1/2+t I]];
+
+	start=Min[int];
+	end=Max[int];
+
+	zeros=Reap[
+			Do[
+				root=Bisection[a,a+stepsize];
+				If[root<=end,Sow[root]],
+			{a,start,end+stepsize,stepsize}]];
+	If[Length[Last[zeros]]>=1,Last[Last[zeros]],{}]
+	];
+
+(*SAD: LSeriesZeros does not take advantage of symmetry of real characters.*)
+(*SAD: LSeriesZeros does not take advantage of a table.*)
+(*SAD: LSeriesZeros does not go to arbitrary precision.*)
+(*SAD: LSeriesZeros does not check for missing zeros.*)
+(*SAD: LSeriesZeros does not use Compile for the Xi function.*)
+(*SAD: LSeriesZeros uses bisection, which isn't brainiac territory.*)
+(*SAD: LSeriesZeros does not scale "stepsize" to be smart about when there are more zeros, like at great height or conductor.*)
+(*SAD: LSeriesZeros assumes GRH, and even so may miss zeros.*)
+(*SAD: LSeriesZeros does not generate an error message to the effect that zeros are not too precise, and some may be missing.*)
 
 
 (* ::Subsection::Closed:: *)
