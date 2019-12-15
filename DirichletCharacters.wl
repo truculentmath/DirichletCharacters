@@ -218,7 +218,7 @@ PrimitiveCharacterQ[\[Chi]_DC?CharacterQ]:=InducedModuli[\[Chi]]=={CharacterModu
 
 
 
-(* ::Subsection:: *)
+(* ::Subsection::Closed:: *)
 (*Induced Moduli: *)
 (*InducedModulusQ, InducedModuli, Conductor, InducingCharacter*)
 
@@ -292,6 +292,7 @@ ConjugateCharacter[\[Chi]_DC?CharacterQ]:=Module[
 	{inverse},
 	inverse=PowerMod[ConreyIndex[\[Chi]],-1,CharacterModulus[\[Chi]]];
 	DC[CharacterModulus[\[Chi]],inverse]];
+ConjugateCharacter[DC[1,1]]=DC[1,1];
 
 CharacterOrder[\[Chi]_DC?CharacterQ]:=MultiplicativeOrder[ConreyIndex[\[Chi]],CharacterModulus[\[Chi]]];
 CharacterOrder[\[Chi]_DC?CharacterQ,A_List]:=MultiplicativeOrder[ConreyIndex[\[Chi]],CharacterModulus[\[Chi]],Map[ConreyIndex,A]];
