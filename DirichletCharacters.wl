@@ -49,7 +49,7 @@ Conductor::usage="Conductor[\[Chi]] returns the conductor of \[Chi], given in th
 
 NumberOfPrimitiveCharacters::usage="NumberOfPrimitiveCharacters[q] returns the number of primitive characters modulo q.";
 PrimitiveCharacters::usage="PrimitiveCharacters[q] returns a list of the primitive characters with modulus q.";
-DCInducingCharacter::usage=" Not yet implemented. DCInducingCharacter[\[Chi]] returns the character that induces \[Chi]=DC[q,i].";
+InducingCharacter::usage="InducingCharacter[\[Chi]] returns the character that induces \[Chi]=DC[q,i].";
 
 CharacterTable::usage="CharacterTable[q] returns the character table for the group of characters modulo q. To get labelling, provide the option Method -> TableForm";
 
@@ -218,9 +218,9 @@ PrimitiveCharacterQ[\[Chi]_DC?CharacterQ]:=InducedModuli[\[Chi]]=={CharacterModu
 
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Induced Moduli: *)
-(*InducedModulusQ, InducedModuli, Conductor, (*not implemented: DCInducingCharacter*)*)
+(*InducedModulusQ, InducedModuli, Conductor, InducingCharacter*)
 
 
 InducedModulusQ[\[Chi]_DC?CharacterQ,d_Integer]:=
@@ -240,6 +240,11 @@ InducedModulusQ[\[Chi]_DC?CharacterQ,d_Integer]:=
 InducedModuli[\[Chi]_DC?CharacterQ]:=Select[Divisors[CharacterModulus[\[Chi]]],InducedModulusQ[\[Chi],#]&];
 
 Conductor[\[Chi]_DC?CharacterQ]:=First[Select[Divisors[CharacterModulus[\[Chi]]],InducedModulusQ[\[Chi],#]&,1]];
+
+InducingCharacter[chi_]:=
+	Module[
+		{qstar=Conductor[chi],q=CharacterModulus[chi]},
+		First[Select[PrimitiveCharacters[qstar],#*DC[q,1]==chi&,1]]];
 
 
 (* ::Subsection::Closed:: *)
