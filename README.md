@@ -2,7 +2,7 @@
 
 Mathematica code for handling Dirichlet Characters properly.
 
-Uses Conrey's notation, as on the LMFDB. Allows for multiplying characters, computing properties (even, odd, primitive), finding inducing characters and lifting characters. Also has rigorously computed zeros of L-series with conductor up to 934.
+Uses Conrey's notation, as on the LMFDB. Allows for multiplying characters, raising characters to powers, computing properties (even, odd, primitive, equal), finding inducing characters and lifting characters, character tables, switching notation between Conrey and Mathematica. Also has rigorously computed zeros of L-series with conductor up to 934. Will compute more zeros nonrigorously.
 
 ## Metadata
       Author: Kevin O'Bryant
