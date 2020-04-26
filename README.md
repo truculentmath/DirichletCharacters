@@ -1,6 +1,8 @@
 # DirichletCharacters`
 
-Mathematica code for handling Dirichlet Characters, using Conrey's notation, as on the LMFDB
+Mathematica code for handling Dirichlet Characters properly.
+
+Uses Conrey's notation, as on the LMFDB. Allows for multiplying characters, computing properties (even, odd, primitive), finding inducing characters and lifting characters. Also has rigorously computed zeros of L-series with conductor up to 934.
 
 ## Metadata
       Author: Kevin O'Bryant
@@ -9,7 +11,10 @@ Mathematica code for handling Dirichlet Characters, using Conrey's notation, as 
 
 ## Getting Started
 Put DirichletCharacters.wl in the directory FileNameJoin[{$UserBaseDirectory, "Applications"}]
+Put dataset.mx (if you want to use the precomputed zeros of L-series) in the directory FileNameJoin[{$UserBaseDirectory, "ApplicationData","DirichletCharacters"}]
 
 Use "<< DirichletCharacters`" (without the double-quotes, but with the backward quote) to load the package.
 
 Examples are in the DCExamples.nb file.
+
+Unit tests are in the CharacterUnitTest.nb file.
