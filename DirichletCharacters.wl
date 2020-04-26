@@ -47,7 +47,8 @@ InducedModulusQ::usage="InducedModulusQ[\[Chi],d] returns true if d is an induce
 InducedModuli::usage="InducedModulusQ[\[Chi]] returns a list of the induced moduli for the character \[Chi], given in the form DC[q,i].";
 Conductor::usage="Conductor[\[Chi]] returns the conductor of \[Chi], given in the form DC[q,i].";
 
-NumberOfPrimitiveCharacters::usage="NumberOfPrimitiveCharacters[q] returns the number of primitive characters modulo q.";
+NumberOfPrimitiveCharacters::usage="NumberOfPrimitiveCharacters[q] returns the number of primitive characters modulo q.\
+NumberOfPrimitiveCharacters[q,a] returns the number of primitive characters modulo q with sign a.";
 PrimitiveCharacters::usage="PrimitiveCharacters[q] returns a list of the primitive characters with modulus q.";
 InducingCharacter::usage="InducingCharacter[\[Chi]] returns the character that induces \[Chi]=DC[q,i].";
 
@@ -57,12 +58,17 @@ ConjugateCharacter::usage="ConjugateCharacter[\[Chi]] returns the character \[Ta
 CharacterOrder::usage="CharacterOrder[\[Chi]] returns the least positive integer n with \[Chi] a principal character. CharacterOrder[\[Chi],{\!\(\*SubscriptBox[\(a\), \(1\)]\),...,\!\(\*SubscriptBox[\(a\), \(k\)]\)}] returns the least positive integer n with \!\(\*SuperscriptBox[\(\[Chi]\), \(n\)]\) in the set {\!\(\*SubscriptBox[\(a\), \(1\)]\),...,\!\(\*SubscriptBox[\(a\), \(k\)]\)}, which must be a list of characters with same modulus as \[Chi].";
 LiftCharacter::usage="LiftCharacter[\[Chi],Q] returns a character \[Tau] with modulus Q and \[Chi]*DC[Q,1] = \[Tau].";
 
-CharacterDecomposition::usage="Not implimented. CharacterDecomposition[LOV] returns a linear combination of characters that evaluates Range[Length[LOV]] to LOV.";
+CharacterDecomposition::usage="Not implemented. CharacterDecomposition[LOV] returns a linear combination of characters that evaluates Range[Length[LOV]] to LOV.";
 
 DirichletL::usage="DirichletL[\[Chi],s] returns the evaluation of the L-series for \[Chi] evaluated at s. This uses the built in Mathematica DirichletL function.";
 LSeriesXi::usage="LSeriesXi[\[Chi],t] returns a symmetrized form of the Dirichlet L-series for the character \[Chi], given in the form DC[q,i], evaluated at t.";
 LSeriesZeros::usage="LSeriesZeros[\[Chi],interval,stepsize] evaluates the (symmetrized) L series Xi[\[Chi],t] for the character \[Chi], given in the form DC[q,i], in the interval, given in the form Interval[{a,b}] at points at most stepsize apart, and uses bisection whenever there is a sign change. Returns a list of real numbers that are the imaginary parts of zeros of the L series on the critical line. This may miss zeros!";
 NTchi::usage="NTchi[\[Chi],Interval[{a,b}]] uses numerical integration to compute the number of zeros of L(s,\[Chi]) whose height is between a and b.";
+
+LSeriesZeroHeights::"LSeriesZeroHeights[chi] returns {maxheight, listofzeros}. The zeros were computed with gp/pari, and rigorously confirmed with Arb, and\
+are extracted from a table as needed."
+
+CharacterData::"CharacterData is an association storing data for many primitive characters. It is loaded when needed."
 
 
 Begin["`Private`"]
@@ -76,7 +82,7 @@ Begin["`Private`"]
 
 
 CharacterModulus[DC[q_,m_]]:=q;
-ConreyIndex[DC[q_,m_]]:=m;
+ConreyIndex[DC[q_,m_]]:=Mod[m,q];
 CharacterQ[\[Chi]_]:=(Head[\[Chi]]==DC)&&Length[\[Chi]]==2&&IntegerQ[First[\[Chi]]]&&Positive[First[\[Chi]]]&&IntegerQ[Last[\[Chi]]]&&GCD[First[\[Chi]],Last[\[Chi]]]==1;
 
 
@@ -172,7 +178,7 @@ IdentifyCharacter[ListOfValues_List]:=
 
 
 ConreyIndexToMathematicaIndex[\[Chi]_DC?CharacterQ]:=ConreyIndexToMathematicaIndex[\[Chi]]=
-    Module[{q=CharacterModulus[\[Chi]],gens,j=1},
+    Module[{q=CharacterModulus[\[Chi]],gens,onGens,j=1},
         gens=Generators[q];
         onGens=\[Chi][gens];
         While[onGens != Map[DirichletCharacter[q,j,#]&,gens],j++];
@@ -184,17 +190,27 @@ ConreyIndexFromMathematicaIndex[q_Integer,j_Integer]:=
 			Module[{onGens,m=1,gens=Generators[q]},
               onGens=Map[DirichletCharacter[q,j,#]&,gens];
               m=Select[CharacterIndices[q],DC[q,#][gens]==onGens&,1];
-              First[m]] 
-              )/; 0<j<EulerPhi[q];
+              DC[q,First[m]]] 
+              )/; 0<j<=EulerPhi[q];
 (*SAD: ConreyIndexFromMathematicaIndex is not aware of the structure in Mathematica's notation.*)
 
 
 (* ::Subsection::Closed:: *)
-(*Links to the External LMFDB database (some broken links that I consider an LMFDB problem): *)
+(*Links to the External LMFDB database: *)
 (*LMFDBLink*)
 
 
-LMFDBLink[\[Chi]_DC?CharacterQ]:={Hyperlink["LMFDB link to character","http://www.lmfdb.org/Character/Dirichlet/"<>ToString[CharacterModulus[\[Chi]]]<>"/"<>ToString[ConreyIndex[\[Chi]]]],Hyperlink["LMFDB link to L-series","http://www.lmfdb.org/L/Character/Dirichlet/"<>ToString[CharacterModulus[\[Chi]]]<>"/"<>ToString[ConreyIndex[\[Chi]]]]}
+LMFDBLink[\[Chi]_DC?CharacterQ]:=
+	{
+	Hyperlink[
+		"LMFDB link to character",
+		"http://www.lmfdb.org/Character/Dirichlet/"<>ToString[CharacterModulus[\[Chi]]]<>"/"<>ToString[ConreyIndex[\[Chi]]]],
+	If[PrimitiveCharacterQ[\[Chi]],
+		Hyperlink[
+			"LMFDB link to L-series",
+			"http://www.lmfdb.org/L/Character/Dirichlet/"<>ToString[CharacterModulus[\[Chi]]]<>"/"<>ToString[ConreyIndex[\[Chi]]]],
+		"non-primitive character; L-series not in the LMFDB"]
+		}
 
 
 (* ::Subsection::Closed:: *)
@@ -205,8 +221,10 @@ LMFDBLink[\[Chi]_DC?CharacterQ]:={Hyperlink["LMFDB link to character","http://ww
 TrivialCharacterQ[\[Chi]_DC?CharacterQ]:=CharacterModulus[\[Chi]]==1;
 
 PrincipalCharacterQ[\[Chi]_DC?CharacterQ]:=Mod[ConreyIndex[\[Chi]],CharacterModulus[\[Chi]]]==1;
+PrincipalCharacterQ[DC[1,1]] = True;
 
 RealCharacterQ[\[Chi]_DC?CharacterQ]:=PowerMod[ConreyIndex[\[Chi]],2,CharacterModulus[\[Chi]]]==1;
+RealCharacterQ[DC[1,1]] = True;
 
 DC/:Sign[\[Chi]_DC?CharacterQ]:=\[Chi][-1]
 
@@ -257,6 +275,13 @@ NumberOfPrimitiveCharacters[q_Integer?Positive]:=
 		{factorization=FactorInteger[q],term},
 		term=factorization/.{{1,1}->1,{p_,1}:>(1-2/p),{p_,e_/;e>1}:>(1-1/p)^2};
 		q*(Times@@term)];
+NumberOfPrimitiveCharacters[q_Integer?Positive,a_Integer]:=
+	1/2 (NumberOfPrimitiveCharacters[q]+(-1)^a*
+		Which[
+			OddQ[q],MoebiusMu[q],
+			OddQ[q/2],0,
+			OddQ[q/4],-MoebiusMu[q/4],
+			True,0]);
 
 PrimitiveCharacters[q_Integer?Positive]:=Map[DC[q,#]&,Select[CharacterIndices[q],PrimitiveCharacterQ[DC[q,#]]&]];
 
@@ -285,7 +310,7 @@ CharacterTable[q_Integer?Positive,OptionsPattern[]]:=
 
 (* ::Subsection::Closed:: *)
 (*Character Arithmetic:*)
-(*ConjugateCharacter, CharacterOrder, Times, Equal, Lift*)
+(*ConjugateCharacter, CharacterOrder, Times, Equal, LiftCharacter*)
 
 
 ConjugateCharacter[\[Chi]_DC?CharacterQ]:=Module[
@@ -373,7 +398,7 @@ Times[DC[Q,Mod[ConreyIndex[LiftCharacter[DC[q1,m1],Q]]*ConreyIndex[LiftCharacter
 
 (* ::Subsection::Closed:: *)
 (*Zeros of L-Series:*)
-(*DirichletL, LSeriesXi, LSeriesZeros, NTchi*)
+(*DirichletL, LSeriesXi, LSeriesZeros, NTchi, CharacterData, LSeriesZeroHeights*)
 
 
 DC/:DirichletL[\[Chi]_DC?CharacterQ,s_]:=Module[{q,m},{q,m}=ConreyIndexToMathematicaIndex[\[Chi]];DirichletL[q,m,s]];
@@ -407,6 +432,32 @@ t==0,
 	estimatet=0];
 
 Round[estimateT]-If[t>0,1,-1]Round[estimatet]]
+
+
+CharacterData := CharacterData = Normal[Import[FileNameJoin[{$UserBaseDirectory,"ApplicationData","DirichletCharacters","dataset.mx"}]]];
+
+
+LSeriesZeroHeights[chi_DC]:=LSeriesZeroHeights[chi]=
+	Module[{primchar,conjchar,q,index,data,zeros,maxq=934},
+		primchar=InducingCharacter[chi];
+		q=CharacterModulus[primchar];
+		If[
+			q <= maxq,
+			
+			conjchar=ConjugateCharacter[primchar];
+			index=Min[ConreyIndex[primchar],ConreyIndex[conjchar]];
+			data = CharacterData[DC[q,index]];
+			zeros = Which[
+				RealCharacterQ[DC[q,index]], Union[data[[Key["zeros"]]],-data[[Key["zeros"]]]],
+				index==ConreyIndex[primchar], data[[Key["zeros"]]],
+				True, -data[[Key["zeros"]]]];
+			{data[[Key["maxheight"]]],
+			 SetAccuracy[Sort[zeros,Abs[#1]<Abs[#2]&],11]
+			},
+			
+			{0, {}}
+		]
+	];
 
 
 LSeriesZeros[\[Chi]_,int_Interval,stepsize_]:=Module[
