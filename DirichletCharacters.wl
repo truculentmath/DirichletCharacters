@@ -82,7 +82,7 @@ Begin["`Private`"]
 
 
 CharacterModulus[DC[q_,m_]]:=q;
-ConreyIndex[DC[q_,m_]]:=Mod[m,q];
+ConreyIndex[DC[q_,m_]]:=Mod[m,q,1];
 CharacterQ[\[Chi]_]:=(Head[\[Chi]]==DC)&&Length[\[Chi]]==2&&IntegerQ[First[\[Chi]]]&&Positive[First[\[Chi]]]&&IntegerQ[Last[\[Chi]]]&&GCD[First[\[Chi]],Last[\[Chi]]]==1;
 
 
@@ -396,7 +396,7 @@ Times[DC[Q,Mod[ConreyIndex[LiftCharacter[DC[q1,m1],Q]]*ConreyIndex[LiftCharacter
 ];
 
 
-(* ::Subsection::Closed:: *)
+(* ::Subsection:: *)
 (*Zeros of L-Series:*)
 (*DirichletL, LSeriesXi, LSeriesZeros, NTchi, CharacterData, LSeriesZeroHeights*)
 
