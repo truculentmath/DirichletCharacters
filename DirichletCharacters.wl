@@ -25,10 +25,10 @@ ConreyIndex::usage = "Returns the index of a character given in DC[modulus,index
 CharacterQ::usage = "Returns True if the input is in the form DC[modulus,index] with modulus a positive integer and index is an integer that is relatively prime to modulus, and returns False otherwise."; 
 
 ConreyIndexToMathematicaIndex::usage="ConreyIndexToMathematicaIndex[\[Chi]] takes in a character in DC[q,i] form and returns {q,j}, where the character is the same as the built-in DirichletCharacter[q,j,#].";
-ConreyIndexFromMathematicaIndex::usage="ConreyIndexFromMathematicaIndex[q,j] returns DC[q,i], which is character built into Mathematica as DirichletCharacter[q,j,#].";
+ConreyIndexFromMathematicaIndex::usage="ConreyIndexFromMathematicaIndex[q,j] returns DC[q,i], which is the character built into Mathematica as DirichletCharacter[q,j,#].";
 
 Generators::usage="Generators[q] returns a list of residues that multiplicatively generate the group of units modulo q.";
-IdentifyCharacter::usage="IdentifyCharacter[LOV] returns the character with modulus Length[LOV] that agrees with the list of values LOV. This function could be much more awesome, in that it should only need a few values to work. Also, the implementation is horribly slow.";
+IdentifyCharacter::usage="IdentifyCharacter[LOV] returns the character with modulus Length[LOV] that agrees with the list of values LOV.";
 
 CharacterIndices::usage="CharacterIndices[q] returns the subset of {1,...,q} of numbers that are relatively prime to q.";
 CharacterGroup::usage="CharacterGroup[q] returns the list of all EulerPhi[q] characters with modulus q.";
@@ -43,19 +43,20 @@ EvenQ::usage = EvenQ::usage<>"For a character \[Chi]=DC[q,i], EvenQ[\[Chi]] retu
 OddQ::usage = OddQ::usage<>"For a character \[Chi]=DC[q,i], OddQ[\[Chi]] returns True if \[Chi] is an odd function, and False otherwise.";
 PrimitiveCharacterQ::usage="PrimitiveCharacterQ[\[Chi]] returns True if \[Chi]=DC[q,i] is a primitive character, and False otherwise.";
 
-InducedModulusQ::usage="InducedModulusQ[\[Chi],d] returns true if d is an induced modulus for the character \[Chi], given in the form DC[q,i].";
-InducedModuli::usage="InducedModulusQ[\[Chi]] returns a list of the induced moduli for the character \[Chi], given in the form DC[q,i].";
-Conductor::usage="Conductor[\[Chi]] returns the conductor of \[Chi], given in the form DC[q,i].";
+InducedModulusQ::usage="InducedModulusQ[\[Chi],d] returns true if d is an induced modulus for the character \[Chi] (with \[Chi] input in the form DC[q,i]).";
+InducedModuli::usage="InducedModulusQ[\[Chi]] returns a list of the induced moduli for the character \[Chi] (with \[Chi] input in the form DC[q,i]).";
+Conductor::usage="Conductor[\[Chi]] returns the conductor of \[Chi] (with \[Chi] input in the form DC[q,i]).";
 
-NumberOfPrimitiveCharacters::usage="NumberOfPrimitiveCharacters[q] returns the number of primitive characters modulo q.\
-NumberOfPrimitiveCharacters[q,a] returns the number of primitive characters modulo q with sign a.";
+NumberOfPrimitiveCharacters::usage="NumberOfPrimitiveCharacters[q] returns the number of primitive characters modulo q. \
+NumberOfPrimitiveCharacters[q,a] returns the number of primitive characters modulo q with sign a (a=0 for even, a=1 for odd).";
 PrimitiveCharacters::usage="PrimitiveCharacters[q] returns a list of the primitive characters with modulus q.";
 InducingCharacter::usage="InducingCharacter[\[Chi]] returns the character that induces \[Chi]=DC[q,i].";
 
 CharacterTable::usage="CharacterTable[q] returns the character table for the group of characters modulo q. To get labelling, provide the option Method -> TableForm";
 
 ConjugateCharacter::usage="ConjugateCharacter[\[Chi]] returns the character \[Tau] obtained by pointwise complex conjugation. In other words, \[Chi]\[Tau] is real.";
-CharacterOrder::usage="CharacterOrder[\[Chi]] returns the least positive integer n with \[Chi] a principal character. CharacterOrder[\[Chi],{\!\(\*SubscriptBox[\(a\), \(1\)]\),...,\!\(\*SubscriptBox[\(a\), \(k\)]\)}] returns the least positive integer n with \!\(\*SuperscriptBox[\(\[Chi]\), \(n\)]\) in the set {\!\(\*SubscriptBox[\(a\), \(1\)]\),...,\!\(\*SubscriptBox[\(a\), \(k\)]\)}, which must be a list of characters with same modulus as \[Chi].";
+CharacterOrder::usage="CharacterOrder[\[Chi]] returns the least positive integer n with \!\(\*SuperscriptBox[\(\[Chi]\), \(n\)]\) a principal character. \
+CharacterOrder[\[Chi],{\!\(\*SubscriptBox[\(a\),\(1\)]\),...,\!\(\*SubscriptBox[\(a\),\(k\)]\)}] returns the least positive integer n with \!\(\*SuperscriptBox[\(\[Chi]\), \(n\)]\) in the set {\!\(\*SubscriptBox[\(a\), \(1\)]\),...,\!\(\*SubscriptBox[\(a\), \(k\)]\)}, which must be a list of characters with same modulus as \[Chi].";
 LiftCharacter::usage="LiftCharacter[\[Chi],Q] returns a character \[Tau] with modulus Q and \[Chi]*DC[Q,1] = \[Tau].";
 
 CharacterDecomposition::usage="Not implemented. CharacterDecomposition[LOV] returns a linear combination of characters that evaluates Range[Length[LOV]] to LOV.";
@@ -452,7 +453,7 @@ LSeriesZeroHeights[chi_DC]:=LSeriesZeroHeights[chi]=
 				index==ConreyIndex[primchar], data[[Key["zeros"]]],
 				True, -data[[Key["zeros"]]]];
 			{data[[Key["maxheight"]]],
-			 SetAccuracy[Sort[zeros,Abs[#1]<Abs[#2]&],11]
+			 SetAccuracy[zeros,11]
 			},
 			
 			{0, {}}
